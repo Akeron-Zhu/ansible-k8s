@@ -1,0 +1,22 @@
+- hosts: k8s
+  become: yes
+  become_method: sudo
+  become_user: root
+  ignore_errors: True
+  tasks:
+    - name: Add K8S repo
+      copy:
+        src: k8s.repo
+        dest: /etc/yum.repos.d/
+    
+    - name: Add insecure registry IP
+      shell: "sed -i 's/sock$/& --insecure-registry={{registry_ip}}:5000' /usr/lib/systemd/system/docker.service;" 
+      tags: inse
+
+    - name: Add in
+      shell: echo -e "{\n \"insecure-registries\":["{{registry_ip}}:5000"] \n}" > /etc/docker/daemon.json
+      tags: t
+
+    - name: close swap
+      shell: "/usr/sbin/swapoff -a"
+      tags: swap

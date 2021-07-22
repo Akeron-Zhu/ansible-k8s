@@ -1,0 +1,13 @@
+- name: Copy registry
+  copy:
+    src: files/registry.tar.gz
+    dest: /root/
+
+- name: Untar file
+  shell: "tar -zxf /root/registry.tar.gz -C /root/; rm -rf registry.tar.gz"
+
+- name: Load docker image
+  shell: "docker load < /root/registry/registry_img.tar.gz"
+
+- name: Start registry
+  shell: "docker rm -f k8sReg; docker run -d --name='k8sReg' -p 5000:5000 -v /root/registry/reg/:/var/lib/registry -v /root/registry/certs:/certs -e REGISTRY_HTTP_TLS_CERTIFICATE=/certs/domain.crt -e REGISTRY_HTTP_TLS_KEY=/certs/domain.key registry:2"

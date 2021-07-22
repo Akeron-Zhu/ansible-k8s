@@ -1,0 +1,34 @@
+
+- hosts: k8s
+  become: yes
+  become_method: sudo
+  become_user: root
+  ignore_errors: True
+  roles:
+    - role: k8s-common
+
+- hosts: registry
+  become: yes
+  become_method: sudo
+  become_user: root
+  roles:
+    - role: k8s-registry
+
+- hosts: masters
+  become: yes
+  become_method: sudo
+  become_user: root
+  environment:
+    PATH: "{{ ansible_env.PATH }}:/usr/sbin"
+  roles:
+    - role: k8s-master
+
+- hosts: nodes
+  become: yes
+  become_method: sudo
+  become_user: root
+  environment:
+    PATH: "{{ ansible_env.PATH }}:/usr/sbin"
+  roles:
+    - role: k8s-node
+

@@ -1,0 +1,5 @@
+[k8s]
+name=k8s yum server
+baseurl=http://10.35.129.57/k8sAdmin
+enabled=1
+gpgcheck=0

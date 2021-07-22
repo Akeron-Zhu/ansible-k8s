@@ -1,0 +1,31 @@
+[k8s:children]
+masters
+nodes
+
+[k8s:vars]
+ntp_server=10.35.129.59
+registry_ip=10.30.106.163
+firstmaster_ip=10.30.106.163
+port=16443
+vip=10.30.107.244
+interface_name=bond0
+
+[ntpd]
+192.168.1.11 
+
+[registry]
+10.30.106.163
+
+[masters:children]
+firstMaster
+otherMasters
+
+[firstMaster]
+10.30.106.163	hostname=master1
+
+[otherMasters]
+10.30.106.164	hostname=master2
+10.30.106.165	hostname=master3
+
+[nodes]
+10.30.106.166	hostname=node1

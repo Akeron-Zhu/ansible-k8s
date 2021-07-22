@@ -1,0 +1,29 @@
+- name: Wait kube vip
+  pause: seconds=60s
+  
+- name: Copy tsc
+  copy:
+    src: files/tsc
+    dest: /root/
+
+- name: Rsync time
+  shell: "service ntpd stop; ntpdate {{ntp_server}}"
+
+- name: Close swap
+  shell: "swapoff -a"
+
+
+- name: K8S mater join
+  shell: "TOKEN=$(cat /root/tsc|awk 'NR==1'); SHA=$(cat /root/tsc|awk 'NR==2'); CERT=$(cat /root/tsc|awk 'NR==3'); kubeadm join {{vip}}:{{port}} --token $TOKEN --discovery-token-ca-cert-hash sha256:$SHA --control-plane --certificate-key $CERT --v=5"
+  
+- name: Make dir for kube
+  shell: "rm -rf $HOME/.kube; mkdir -p $HOME/.kube; sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config; sudo chown $(id -u):$(id -g) $HOME/.kube/config"
+
+- name: Copy yml file of kube-vip
+  template:
+    src: files/kube-vip.yaml
+    dest: /etc/kubernetes/manifests/
+
+- name: Clean job
+  shell: "rm -rf /root/tsc"
+

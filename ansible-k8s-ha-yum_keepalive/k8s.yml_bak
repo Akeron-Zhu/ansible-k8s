@@ -1,0 +1,30 @@
+- hosts: ntpd
+  roles:
+    - role: k8s-ntp
+
+- hosts: k8s
+  remote_user: root
+  ignore_errors: True
+  roles:
+    - role: k8s-common
+
+- hosts: registry
+  remote_user: root
+  roles:
+    - role: k8s-registry
+
+- hosts: firstMaster
+  remote_user: root
+  roles:
+    - role: k8s-firstmaster
+
+- hosts: otherMasters
+  remote_user: root
+  roles:
+    - role: k8s-othermaster
+
+- hosts: nodes
+  remote_user: root
+  roles:
+    - role: k8s-node
+

@@ -1,0 +1,52 @@
+- name: Rsync time
+  shell: "service ntpd stop; ntpdate {{ntp_server}}"
+
+
+- name: Close swap
+  shell: "swapoff -a"
+
+- name: Generate cert
+  shell: "kubeadm alpha certs certificate-key"
+  register: CERT
+
+- name: Copy yml file of kube-vip
+  template:
+    src: files/kube-vip.yaml
+    dest: /etc/kubernetes/manifests/
+
+- name: K8S mater init
+  shell: "kubeadm init --apiserver-advertise-address={{ansible_ssh_host}} --image-repository {{registry_ip}}:5000 --kubernetes-version v1.16.6 --service-cidr=10.24.0.0/16 --pod-network-cidr=10.244.0.0/16 --control-plane-endpoint {{vip}}:{{port}} --certificate-key {{CERT.stdout}} --upload-certs"
+
+- name: Make dir for kube
+  shell: "rm -rf $HOME/.kube; mkdir -p $HOME/.kube; sudo cp /etc/kubernetes/admin.conf $HOME/.kube/config; sudo chown $(id -u):$(id -g) $HOME/.kube/config"
+
+- name: Copy kube file
+  template:
+    src: files/kube/kube-flannel.yml
+    dest: /root/
+
+- name: Copy kube file
+  template:
+    src: files/kube/ingress-nginx.yml
+    dest: /root/
+
+
+- name: Install flannel and ingress-nginx
+  shell: "sudo kubectl apply -f /root/kube-flannel.yml; sudo kubectl apply -f /root/ingress-nginx.yml"
+
+
+
+- name: Get SHA
+  shell: openssl x509 -pubkey -in /etc/kubernetes/pki/ca.crt | openssl rsa -pubin -outform der 2>/dev/null | openssl dgst -sha256 -hex | sed 's/^.* //'
+  register: SHA 
+
+- name: Get TOKEN
+  shell: "kubeadm token list |grep authentication|cut -d ' ' -f 1"
+  register: TOKEN
+
+
+- name: Write TOKEN SHA and CERT to local
+  local_action: copy content="{{TOKEN.stdout}}\n{{SHA.stdout}}\n{{CERT.stdout}}\n" dest="./roles/k8s-othermaster/files/tsc" 
+
+- name: Write TOKEN SHA and CERT to local
+  local_action: copy content="{{TOKEN.stdout}}\n{{SHA.stdout}}\n{{CERT.stdout}}\n" dest="./roles/k8s-node/files/tsc" 

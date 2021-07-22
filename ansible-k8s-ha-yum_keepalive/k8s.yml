@@ -1,0 +1,46 @@
+- hosts: k8s
+  become: yes
+  become_method: sudo
+  become_user: root
+  ignore_errors: True
+  environment:
+    PATH: "{{ ansible_env.PATH }}:/usr/sbin"
+  roles:
+    - role: k8s-common
+
+- hosts: registry
+  become: yes
+  become_method: sudo
+  become_user: root
+  environment:
+    PATH: "{{ ansible_env.PATH }}:/usr/sbin"
+  roles:
+    - role: k8s-registry
+
+- hosts: firstMaster
+  become: yes
+  become_method: sudo
+  become_user: root
+  environment:
+    PATH: "{{ ansible_env.PATH }}:/usr/sbin"
+  roles:
+    - role: k8s-firstmaster
+
+- hosts: otherMasters
+  become: yes
+  become_method: sudo
+  become_user: root
+  environment:
+    PATH: "{{ ansible_env.PATH }}:/usr/sbin"
+  roles:
+    - role: k8s-othermaster
+
+- hosts: nodes
+  become: yes
+  become_method: sudo
+  become_user: root
+  environment:
+    PATH: "{{ ansible_env.PATH }}:/usr/sbin"
+  roles:
+    - role: k8s-node
+

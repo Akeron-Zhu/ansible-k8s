@@ -1,0 +1,62 @@
+
+- name: Debug example
+  debug:
+    msg: "hostnamectl set-hostname {{ansible_ssh_host}}"
+  tags: debug
+
+- name: Copy tsc
+  copy:
+    src: files/tsc
+    dest: /root/
+
+- name: Rsync time
+  shell: "service ntpd stop; ntpdate {{ntp_server}}"
+
+- name: Close swap
+  shell: "swapoff -a"
+
+- name: Install ntp, docker-ce and kube* 
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items:
+  - "keepalived"
+  - "haproxy"
+
+- name: Copy keepalived configure file
+  template: 
+    src: files/keepalived_haproxy/keepalived_backup.conf
+    dest: /etc/keepalived/keepalived.conf
+    
+- name: Copy check_apiserver file
+  template: 
+    src: files/keepalived_haproxy/check_apiserver.sh
+    dest: /etc/keepalived/
+    
+- name: Copy haproxy file
+  template: 
+    src: files/keepalived_haproxy/haproxy.cfg
+    dest: /etc/haproxy/
+
+- name: Enable keepalive
+  service: 
+    name: keepalived
+    state: restarted
+    enabled: yes
+
+- name: Enable haproxy
+  service: 
+    name: haproxy
+    state: restarted
+    enabled: yes
+
+
+- name: K8S mater join
+  shell: "TOKEN=$(cat /root/tsc|awk 'NR==1'); SHA=$(cat /root/tsc|awk 'NR==2'); CERT=$(cat /root/tsc|awk 'NR==3'); kubeadm join {{vip}}:{{port}} --token $TOKEN --discovery-token-ca-cert-hash sha256:$SHA --control-plane --certificate-key $CERT --v=5"
+  
+- name: Make dir for kube
+  shell: "rm -rf $HOME/.kube; mkdir -p $HOME/.kube; sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config; sudo chown $(id -u):$(id -g) $HOME/.kube/config"
+
+- name: Clean job
+  shell: "rm -rf /root/tsc"
+

@@ -1,0 +1,22 @@
+[k8s:children]
+masters
+nodes
+
+[k8s:vars]
+ntp_server=10.8.12.35
+master_ip=10.8.12.4
+registry_ip=10.8.12.4
+
+[registry]
+10.8.12.4
+
+[masters]
+10.8.12.4	hostname=k8s-02
+
+[nodes]
+10.8.12.2 hostname=k8s-01
+10.8.12.30 hostname=k8s-05
+10.8.12.34 hostname=k8s-06
+10.8.12.39 hostname=k8s-07
+10.8.12.43 hostname=k8s-08
+10.8.12.26 hostname=k8s-04
